@@ -40,5 +40,11 @@ publishing {
     }
     repositories{
         mavenLocal()
+        maven("https://repo.maven.rtast.cn/releases") {
+            credentials {
+                username = "RTAkland"
+                password = System.getenv("PUBLISH_TOKEN")
+            }
+        }
     }
 }
