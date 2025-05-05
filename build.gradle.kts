@@ -40,9 +40,9 @@ publishing {
     }
     repositories{
         mavenLocal()
-        maven("https://repo.maven.rtast.cn/releases") {
+        maven("https://m2.1v.fit/releases") {
             credentials {
-                username = "RTAkland"
+                username = "admin"
                 password = System.getenv("PUBLISH_TOKEN")
             }
         }
