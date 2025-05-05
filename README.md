@@ -11,6 +11,11 @@ repositories {
     maven("https://m2.1v.fit/releases")
     maven("https://repo.maven.rtast.cn/releases")
 }
+
+dependencies {
+    ...
+    implementation("com.manjiuqi.mcsmsdk:MCSMSDK-Kotlin:1.1.1")
+}
 ```
 
 ```kotlin
