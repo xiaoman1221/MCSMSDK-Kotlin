@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.manjiuqi.mcsmsdk"
-version = "1.1.1"
+version = "1.1.2-snapshots"
 
 repositories {
     mavenCentral()
@@ -40,7 +40,7 @@ publishing {
     }
     repositories{
         mavenLocal()
-        maven("https://m2.1v.fit/releases") {
+        maven("https://m2.1v.fit/snapshots") {
             credentials {
                 username = "xiaoman1221"
                 password = System.getenv("PUBLISH_TOKEN")

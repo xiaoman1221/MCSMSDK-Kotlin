@@ -23,7 +23,7 @@ class MCSM(
     /**
      * 构建查询 URI
      */
-    fun query(q: String, p: String? = ""): String? {
+    fun query(q: String, p: String? = ""): String {
         try {
             val url = "${host}:${port}${q}?apikey=${apikey}${p}"
             return url
@@ -37,7 +37,7 @@ class MCSM(
      */
     fun overview(): Dashboard? {
         try {
-            val data = query("/api/overview")?.let { Http.get<Dashboard>(it) }
+            val data = query("/api/overview").let { Http.get<Dashboard>(it) }
             return data
         } catch (_: Exception) {
             return null
@@ -53,13 +53,13 @@ class MCSM(
                 val data = query(
                     "/api/auth/search",
                     "&userName=&page=$page&page_size=$pageSite&role="
-                )?.let { Http.get<Search>(it) }
+                ).let { Http.get<Search>(it) }
                 return data
             }
             val data = query(
                 "/api/auth/search",
                 "&userName=&page=$page&page_size=$pageSite&role=$role"
-            )?.let { Http.get<Search>(it) }
+            ).let { Http.get<Search>(it) }
             return data
         } catch (_: Exception) {
             return null
@@ -71,7 +71,7 @@ class MCSM(
      */
     fun createUser(user: String, pass: String, permission: Int = 1): UserCreate? {
         try {
-            val data = query("/api/auth")?.let {
+            val data = query("/api/auth").let {
                 val res = UserCreateQuery(user, pass, permission).toJson()
                 Http.post<UserCreate>(
                     it,
@@ -94,12 +94,8 @@ class MCSM(
             val user = searchUser(user)
             if (user != null && user.status == 200 && user.data.total == 1) {
                 val data = user.data.data?.get(0)?.uuid
-                val resp = query("/api/auth")?.let { Http.delete<UserDelete>(it, "[\"$data\"]") }
-                return if (resp != null) {
-                    return resp.status == 200
-                } else {
-                    false
-                }
+                val resp = query("/api/auth").let { Http.delete<UserDelete>(it, "[\"$data\"]") }
+                return resp.status == 200
             } else {
                 return false
             }
@@ -118,13 +114,13 @@ class MCSM(
                 val data = query(
                     "/api/auth/search",
                     "&userName=$userName&page=$page&page_size=$pageSite&role="
-                )?.let { Http.get<Search>(it) }
+                ).let { Http.get<Search>(it) }
                 return data
             }
             val data = query(
                 "/api/auth/search",
                 "&userName=$userName&page=$page&page_size=$pageSite&role=$role"
-            )?.let { Http.get<Search>(it) }
+            ).let { Http.get<Search>(it) }
             return data
         } catch (_: Exception) {
             return null
@@ -146,7 +142,7 @@ class MCSM(
                         )
                     }
                     try {
-                        val data = query("/api/auth/update")?.let {
+                        val data = query("/api/auth/update").let {
                             userUpdateQuery?.let { it1 -> Http.put<UserUpdate>(it, it1.toJson()) }
                         }
                         return data
@@ -168,7 +164,7 @@ class MCSM(
             val data = query(
                 "/api/service/remote_service_instances",
                 "&daemonId=${daemonId}&page=1&page_size=10&status=&instance_name="
-            )?.let { Http.get<InstancesList>(it) }
+            ).let { Http.get<InstancesList>(it) }
             return data
         } catch (e: Exception) {
             println(e.toString())
@@ -190,8 +186,8 @@ class MCSM(
                 val tmp = query(
                     "/api/service/remote_service_instances",
                     "&daemonId=${it}&page=1&page_size=10&status=&instance_name="
-                )?.let { it -> Http.get<InstancesList>(it) }
-                tmp?.let { element -> data.add(element) }
+                ).let { it -> Http.get<InstancesList>(it) }
+                tmp.let { element -> data.add(element) }
             }
             return data
         } catch (_: Exception) {
@@ -202,8 +198,8 @@ class MCSM(
     /**
      * 创建 实例
      */
-    fun createInstance(daemonId: String, instanceConfig: InstanceConfig): InstancesCreate? {
-        val data = query("/api/instance", "&daemonId=${daemonId}")?.let {
+    fun createInstance(daemonId: String, instanceConfig: InstanceConfig): InstancesCreate {
+        val data = query("/api/instance", "&daemonId=${daemonId}").let {
             Http.post<InstancesCreate>(
                 it,
                 instanceConfig.toJson()
@@ -215,8 +211,8 @@ class MCSM(
     /**
      * 更新 实例
      */
-    fun updateInstance(daemonId: String, uuid: String, instanceConfig: InstanceConfig): InstanceUpdate? {
-        val data = query("/api/instance", "&uuid=${uuid}&daemonId=${daemonId}")?.let {
+    fun updateInstance(daemonId: String, uuid: String, instanceConfig: InstanceConfig): InstanceUpdate {
+        val data = query("/api/instance", "&uuid=${uuid}&daemonId=${daemonId}").let {
             Http.put<InstanceUpdate>(
                 it,
                 instanceConfig.toJson()
@@ -228,36 +224,30 @@ class MCSM(
     /**
      * 删除 实例
      */
-    fun deleteInstance(daemonId: String, uuids: List<String>, deleteFile: Boolean = false): Boolean {
+    fun deleteInstance(daemonId: String, uuids: List<String>, deleteFile: Boolean = false): String {
         val res = InstancesDelete(uuids, deleteFile).toJson()
-        val data = query("/api/instance", "&daemonId=${daemonId}")?.let { Http.delete(it, res) }
-        return data != null
+        val data = query("/api/instance", "&daemonId=${daemonId}").let { Http.delete(it, res) }
+        return data
     }
 
     /**
      * 启动 实例
      */
     fun startInstance(uuid: String, daemonId: String): Boolean {
-        val data = query("/api/protected_instance/open", "&uuid=${uuid}&daemonId=${daemonId}")?.let {
+        val data = query("/api/protected_instance/open", "&uuid=${uuid}&daemonId=${daemonId}").let {
             Http.get<InstanceUpdate>(it)
         }
-        if (data != null) {
-            return data.status == 200
-        }
-        return false
+        return data.status == 200
     }
 
     /**
      * 停止 实例
      */
     fun stopInstance(uuid: String, daemonId: String): Boolean {
-        val data = query("/api/protected_instance/stop", "&uuid=${uuid}&daemonId=${daemonId}")?.let {
+        val data = query("/api/protected_instance/stop", "&uuid=${uuid}&daemonId=${daemonId}").let {
             Http.get<InstanceUpdate>(it)
         }
-        if (data != null) {
-            return data.status == 200
-        }
-        return false
+        return data.status == 200
     }
 
     /**
@@ -267,24 +257,18 @@ class MCSM(
         val data = query(
             "/api/protected_instance/restart",
             "&uuid=${uuid}&daemonId=${daemonId}"
-        )?.let { Http.get<InstanceUpdate>(it) }
-        if (data != null) {
-            return data.status == 200
-        }
-        return false
+        ).let { Http.get<InstanceUpdate>(it) }
+        return data.status == 200
     }
 
     /**
      *  强制结束 实例
      */
     fun killInstance(uuid: String, daemonId: String): Boolean {
-        val data = query("/api/protected_instance/kill", "&uuid=${uuid}&daemonId=${daemonId}")?.let {
+        val data = query("/api/protected_instance/kill", "&uuid=${uuid}&daemonId=${daemonId}").let {
             Http.get<InstanceUpdate>(it)
         }
-        if (data != null) {
-            return data.status == 200
-        }
-        return false
+        return data.status == 200
     }
 
     /**
@@ -301,9 +285,9 @@ class MCSM(
     /**
      * 添加 后端节点
      */
-    fun addDaemon(ip: String, port: Int, prefix: String = "", remarks: String = "", apikey: String): DaemonCreate? {
+    fun addDaemon(ip: String, port: Int, prefix: String = "", remarks: String = "", apikey: String): DaemonCreate {
         val res = DaemonCreateQuery(ip, port, prefix, remarks, apikey).toJson()
-        val data = query("api/service/remote_service")?.let { Http.post<DaemonCreate>(it, res) }
+        val data = query("api/service/remote_service").let { Http.post<DaemonCreate>(it, res) }
         return data
     }
 
@@ -311,16 +295,16 @@ class MCSM(
      * 删除 后端节点
      */
     fun deleteDaemon(uuid: String): Boolean {
-        val data = query("/api/service/remote_service")?.let { Http.delete<DaemonDelete>(it, "{uuid: $uuid}") }
-        return data?.data ?: false
+        val data = query("/api/service/remote_service").let { Http.delete<DaemonDelete>(it, "{uuid: $uuid}") }
+        return data.data
     }
 
     /**
      * 链接 后端节点
      */
     fun connectDaemon(uuid: String): Boolean {
-        val data = query("/api/service/link_remote_service", "&uuid=${uuid}")?.let { Http.get<DaemonDelete>(it) }
-        return data?.data ?: false
+        val data = query("/api/service/link_remote_service", "&uuid=${uuid}").let { Http.get<DaemonDelete>(it) }
+        return data.data
     }
 
     /**
@@ -335,28 +319,24 @@ class MCSM(
         apikey: String
     ): Boolean {
         val res = DaemonCreateQuery(ip, port, prefix, remarks, apikey).toJson()
-        val data = query("/api/service/remote_service", "&uuid=${uuid}")?.let { Http.put<DaemonDelete>(it, res) }
-        return data?.data ?: false
+        val data = query("/api/service/remote_service", "&uuid=${uuid}").let { Http.put<DaemonDelete>(it, res) }
+        return data.data
     }
 
     /**
      * 获取 文件列表
      */
-    fun fileList(daemonId: String, uuid: String, target: String = "/", page: Int, pageSite: Int): FileList? {
+    fun fileList(daemonId: String, uuid: String, target: String = "/", page: Int, pageSite: Int): FileList {
         val res = FileListQuery(daemonId, uuid, target, page, pageSite).toJson()
-        val data = query("/api/files/list", res)?.let { Http.get<FileList>(it) }
-        if (data != null) {
-            return data
-        } else {
-            return null
-        }
+        val data = query("/api/files/list", res).let { Http.get<FileList>(it) }
+        return data
     }
 
     /**
      * 获取 文件内容
      */
-    fun fileContent(uuid: String, daemonId: String, target: String): FileContent? {
-        val data = query("/api/files/", "&daemonId=${daemonId}&uuid=${uuid}")?.let {
+    fun fileContent(uuid: String, daemonId: String, target: String): FileContent {
+        val data = query("/api/files/", "&daemonId=${daemonId}&uuid=${uuid}").let {
             Http.put<FileContent>(
                 it,
                 "{\"target\":$target\"}"
@@ -370,11 +350,8 @@ class MCSM(
      */
     fun updateFileContent(uuid: String, daemonId: String, fileContent: String, target: String = "/"): Boolean {
         val res = UpdateFileContent(target, fileContent).toJson()
-        val data = query("/api/files/", "&uuid=${uuid}&daemonId=${daemonId}")?.let { Http.put<DaemonDelete>(it, res) }
-        if (data != null) {
-            return data.data
-        }
-        return false
+        val data = query("/api/files/", "&uuid=${uuid}&daemonId=${daemonId}").let { Http.put<DaemonDelete>(it, res) }
+        return data.data
     }
 
     /**
@@ -385,16 +362,12 @@ class MCSM(
             val data = query(
                 "/api/files/download",
                 "&file_name=$target&daemonId=$daemonId&uuid=$uuid"
-            )?.let { Http.get<FilePassword>(it) }
-            return if (data != null) {
-                if (data.status == 200) {
-                    return if (data.data.addr == "localhost:24444") {
-                        "$host:24444/download/${data.data.password}${target}"
-                    } else {
-                        "$host/download/${data.data.password}${target}"
-                    }
+            ).let { Http.get<FilePassword>(it) }
+            return if (data.status == 200) {
+                return if (data.data.addr == "localhost:24444") {
+                    "$host:24444/download/${data.data.password}${target}"
                 } else {
-                    null
+                    "$host/download/${data.data.password}${target}"
                 }
             } else {
                 null
@@ -413,16 +386,12 @@ class MCSM(
             val data = query(
                 "/api/files/upload",
                 "&upload_dir=$target&daemonId=$daemonId&uuid=$uuid"
-            )?.let { Http.get<FilePassword>(it) }
-            return if (data != null) {
-                if (data.status == 200) {
-                    return if (data.data.addr == "localhost:24444") {
-                        "$host:24444/upload/${data.data.password}"
-                    } else {
-                        "$host/upload/${data.data.password}"
-                    }
+            ).let { Http.get<FilePassword>(it) }
+            return if (data.status == 200) {
+                return if (data.data.addr == "localhost:24444") {
+                    "$host:24444/upload/${data.data.password}"
                 } else {
-                    null
+                    "$host/upload/${data.data.password}"
                 }
             } else {
                 null
@@ -439,12 +408,8 @@ class MCSM(
     fun deleteFile(uuid: String, daemonId: String, targets: List<String>): Boolean {
         try {
             val res = FileDelete(targets).toJson()
-            val data = query("/api/files", "&daemonId=$daemonId&uuid=$uuid")?.let { Http.delete<DaemonDelete>(it, res) }
-            return if (data != null) {
-                data.status == 200
-            } else {
-                false
-            }
+            val data = query("/api/files", "&daemonId=$daemonId&uuid=$uuid").let { Http.delete<DaemonDelete>(it, res) }
+            return data.status == 200
         } catch (e: Exception) {
             println(e)
             return false
@@ -456,17 +421,13 @@ class MCSM(
      */
     fun touchFile(uuid: String, daemonId: String, target: String): Boolean {
         try {
-            val data = query("/api/files/touch", "&daemonId=$daemonId&uuid=$uuid")?.let {
+            val data = query("/api/files/touch", "&daemonId=$daemonId&uuid=$uuid").let {
                 Http.post<DaemonDelete>(
                     it,
                     "{\"target\": \"${target}\"}"
                 )
             }
-            return if (data != null) {
-                data.status == 200
-            } else {
-                false
-            }
+            return data.status == 200
         } catch (e: Exception) {
             println(e)
             return false
@@ -478,17 +439,13 @@ class MCSM(
      */
     fun mkdir(uuid: String, daemonId: String, target: String): Boolean {
         try {
-            val data = query("/api/files/mkdir", "&daemonId=$daemonId&uuid=$uuid")?.let {
+            val data = query("/api/files/mkdir", "&daemonId=$daemonId&uuid=$uuid").let {
                 Http.post<DaemonDelete>(
                     it,
                     "{\"target\": \"${target}\"}"
                 )
             }
-            return if (data != null) {
-                data.status == 200
-            } else {
-                false
-            }
+            return data.status == 200
         } catch (e: Exception) {
             println(e)
             return false
@@ -501,12 +458,8 @@ class MCSM(
     fun mv(uuid: String, daemonId: String, targets: MoveFile): Boolean {
         try {
             val res = targets.toJson()
-             val data = query("/api/files/move","&daemonId=$daemonId&uuid=$uuid")?.let { Http.put<DaemonDelete>(it,res) }
-            return if (data != null) {
-                data.status == 200
-            }else{
-                false
-            }
+             val data = query("/api/files/move","&daemonId=$daemonId&uuid=$uuid").let { Http.put<DaemonDelete>(it,res) }
+            return data.status == 200
         } catch (e: Exception) {
             println(e)
             return false
@@ -516,22 +469,22 @@ class MCSM(
     /**
      * Docker 镜像列表
      */
-    fun getDockerImages(daemonId: String): DockerImages? {
-        return query("/api/environment/image", "&daemonId=${daemonId}")?.let { Http.get<DockerImages>(it) }
+    fun getDockerImages(daemonId: String): DockerImages {
+        return query("/api/environment/image", "&daemonId=${daemonId}").let { Http.get<DockerImages>(it) }
     }
 
     /**
      * Docker 容器列表
      */
-    fun getDockerContainers(daemonId: String): DockerContainers? {
-        return query("/api/environment/containers", "&daemonId=${daemonId}")?.let { Http.get<DockerContainers>(it) }
+    fun getDockerContainers(daemonId: String): DockerContainers {
+        return query("/api/environment/containers", "&daemonId=${daemonId}").let { Http.get<DockerContainers>(it) }
     }
 
     /**
      * Docker 网络接口列表
      */
-    fun getDockerNetworks(daemonId: String): DockerNetwork? {
-        return query("/api/environment/network", "&daemonId=${daemonId}")?.let { Http.get<DockerNetwork>(it) }
+    fun getDockerNetworks(daemonId: String): DockerNetwork {
+        return query("/api/environment/network", "&daemonId=${daemonId}").let { Http.get<DockerNetwork>(it) }
     }
 
     /**
@@ -539,13 +492,9 @@ class MCSM(
      */
     fun addDockerImage(daemonId: String, dockerfile: String? = null, name: String, tag: String): Boolean {
         val res = DockerCreateImage(name, tag, dockerfile)
-        val data = query("/api/environment/image", "&daemonId=${daemonId}")?.let { Http.post<DaemonDelete>(it) }
-        return if (data != null) {
-            if (data.status == 200) {
-                data.data
-            } else {
-                false
-            }
+        val data = query("/api/environment/image", "&daemonId=${daemonId}").let { Http.post<DaemonDelete>(it) }
+        return if (data.status == 200) {
+            data.data
         } else {
             false
         }
@@ -554,8 +503,8 @@ class MCSM(
     /**
      * Docker 获取构建进度
      */
-    fun getDockerProgress(daemonId: String): Progress? {
-        return query("/api/environment/progress", "&daemonId=${daemonId}")?.let { Http.get<Progress>(it) }
+    fun getDockerProgress(daemonId: String): Progress {
+        return query("/api/environment/progress", "&daemonId=${daemonId}").let { Http.get<Progress>(it) }
     }
 }
 
